@@ -5,14 +5,14 @@ TMPDIR=/home/user/tmp/test_connectors
 CONNECTORS_SRC=/home/user/src/trunk/bonita-connectors
 STUDIOVERSION=6.x_TYCHO
 TRUNKVERSION=6.0.Beta.4-SNAPSHOT
-STUDIO_NAME=org.bonitasoft.studio.product-linux.gtk.x86_64
-BOS_URL="http://192.168.1.221:8080/view/Studio/job/BOS-Studio-6.x_TYCHO/lastSuccessfulBuild/artifact/releng/studio-repository/target/products/${STUDIO_NAME}.tar.gz"
+STUDIO_NAME="BOS-6.0-SNAPSHOT-All-in-one"
+BOS_URL="http://192.168.1.221:8080/view/Studio/job/BOS-Studio-Packaging-6.x/lastSuccessfulBuild/artifact/target/${STUDIO_NAME}.zip"
 
 CONNECTORS=${CONNECTORS_SRC}/bonita-connectors-package/target/bonita-connectors-package-${TRUNKVERSION}-package.zip
 ORIGINALDIR=`pwd`
 PLUGINS_DIR=${TMPDIR}/${STUDIO_NAME}/plugins
-CONNECTORS_PLUGIN=org.bonitasoft.studio.connectors_1.0.0.201301311102
-CONNECTORS_DIR=${PLUGINS_DIR}/${CONNECTORS_PLUGIN}
+CONNECTORS_PLUGIN=
+CONNECTORS_DIR=
 
 
 function clean() {
@@ -26,12 +26,12 @@ function clean() {
 
 function build_connectors() {
 	cd ${CONNECTORS_SRC}
-	mvn clean install -Palpha -DskipTests=true
+	mvn clean install -Pbeta -DskipTests=true
 	cd ${TMPDIR}
 }
 
 function download_studio() {
-	if [ ! -f "org.bonitasoft.studio.product-linux.gtk.x86_64.tar.gz" ]
+	if [ ! -f ${STUDIO_NAME}.zip ]
 	then
 		wget -c ${BOS_URL}
 	fi
@@ -40,9 +40,7 @@ function download_studio() {
 
 function extract_studio() {
 	if [ ! -d ${STUDIO_NAME} ]; then
-		mkdir ${STUDIO_NAME}
-		cd ${STUDIO_NAME}
-		tar -xvzf ../${STUDIO_NAME}.tar.gz
+		unzip ${STUDIO_NAME}.zip
 	fi
 	cd ${TMPDIR}
 }
@@ -50,11 +48,12 @@ function extract_studio() {
 function reset_studio_connectors() {
 	STUDIO_PLUGINS=${STUDIO_NAME}/plugins
 	cd ${TMPDIR}/${STUDIO_PLUGINS}
-	JARFILE=$(ls org.bonitasoft.studio.connectors_*.jar)
-	PLUGINDIR=${JARFILE%%.jar}
-	mkdir ${PLUGINDIR}
-	cd ${PLUGINDIR}
-	unzip ../${JARFILE}
+	JAR_FILE=$(ls org.bonitasoft.studio.connectors_*.jar)
+	CONNECTORS_PLUGIN=${JAR_FILE%%.jar}
+	mkdir ${CONNECTORS_PLUGIN}
+	cd ${CONNECTORS_PLUGIN}
+	CONNECTORS_DIR=${PLUGINS_DIR}/${CONNECTORS_PLUGIN}
+	unzip ../${JAR_FILE}
 	rm connectors-def/*
 	rm connectors-impl/*
 	rm dependencies/*
