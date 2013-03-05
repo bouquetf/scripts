@@ -1,13 +1,15 @@
 #!/bin/sh
 
 # !!! Modify this values according to your environment !!! #
+CONNECTORS_PACKAGES=(bonita-connector-email bonita-connector-database bonita-connector-scripting bonita-connector-webservice bonita-connector-salesforce)
 TMPDIR=/home/user/tmp/test_connectors
-CONNECTORS_SRC=/home/user/src/trunk/bonita-connectors
+CONNECTORS_SRC=/home/user/src/trunk/bonita-connectors-6
 STUDIOVERSION=6.x_TYCHO
-TRUNKVERSION=6.0.Beta.4-SNAPSHOT
-STUDIO_NAME="BOS-6.0-SNAPSHOT-All-in-one"
-BOS_URL="http://192.168.1.221:8080/view/Studio/job/BOS-Studio-Packaging-6.x/lastSuccessfulBuild/artifact/target/${STUDIO_NAME}.zip"
-
+TRUNKVERSION="6.0.0-Beta-001-SNAPSHOT"
+#STUDIO_NAME="BOS-6.0-SNAPSHOT-All-in-one"
+STUDIO_NAME="BOS-SP-6.0-SNAPSHOT-All-in-one"
+#BOS_URL="http://192.168.1.221:8080/view/Studio/job/BOS-Studio-Packaging-6.x/lastSuccessfulBuild/artifact/target/${STUDIO_NAME}.zip"
+BOS_URL="http://192.168.1.221:8080/view/Studio/job/BOS-SP-Studio-Packaging-6.x/lastSuccessfulBuild/artifact/target/${STUDIO_NAME}.zip"
 CONNECTORS=${CONNECTORS_SRC}/bonita-connectors-package/target/bonita-connectors-package-${TRUNKVERSION}-package.zip
 ORIGINALDIR=`pwd`
 PLUGINS_DIR=${TMPDIR}/${STUDIO_NAME}/plugins
@@ -26,7 +28,19 @@ function clean() {
 
 function build_connectors() {
 	cd ${CONNECTORS_SRC}
-	mvn clean install -Pbeta -DskipTests=true
+	cd bonita-connectors
+	mvn clean install -DskipTests=true
+	cd ..
+	cd connectors
+	for folder in ${CONNECTORS_PACKAGES}
+	do
+		cd "$folder"
+		mvn clean install -DskipTests=true
+		cd ..
+	done
+	cd ..
+	cd bonita-connectors-package
+	mvn clean install -DskipTests=true
 	cd ${TMPDIR}
 }
 
